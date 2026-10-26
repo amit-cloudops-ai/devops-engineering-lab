@@ -1,0 +1,45 @@
+name: Daily DevOps Repository Checks
+
+on:
+  schedule:
+    # Every day at 12:17 UTC (5:47 PM IST)
+    - cron: "17 12 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-devops-checks
+  cancel-in-progress: false
+
+jobs:
+  repository-check:
+    name: Validate repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check repository structure
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Repository: $GITHUB_REPOSITORY"
+          echo "Branch: $GITHUB_REF_NAME"
+          echo "Date (UTC): $(date -u +%F)"
+
+          if [ ! -f README.md ]; then
+            echo "::error::README.md is missing"
+            exit 1
+          fi
+
+          echo "Repository structure check passed."
+
+      - name: Record workflow result
+        run: |
+          echo "DevOps repository validation completed."
+          echo "No infrastructure was deployed."
